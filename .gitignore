@@ -1,0 +1,22 @@
+# Object files and binaries
+*.o
+*.obj
+*.out
+*.exe
+*.elf
+*.eps
+
+# Dependencies 
+*.d
+
+# Build directories
+build/
+bin/
+out/
+
+# Editor temp files
+*.swp
+*.tmp
+
+# Generated files
+*.dat
