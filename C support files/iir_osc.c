@@ -4,15 +4,16 @@
  * 
  * Run command on linux terminal
  * ./[nombre].out
-*/
+ **/
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
+
 /**
  * 	Signals parameters
-*/
+ **/
 #define	N	1000			// no. of samples
 #define f7	7 				// cycles of 1st tone
 #define f15	15 				// cycles of 2nd tone
@@ -20,9 +21,10 @@
 #define A   1				// amplitude
 #define PI 	3.1415926		// pi constant
 
+
 /**
  * 	Fixed point formats
-*/
+ **/
 #define Q12 12
 #define Q10 10
 #define Q8  8
@@ -31,23 +33,24 @@
 
 /**
  * 	Function signatures
-*/
+ **/
 int float_to_Qi(int Qi, float num);
+int* sine_to_Qi(int *signal_qi, double *signal_float, int qi);
+void create_signal_data_file_qi(int *signal, const char *filename);
+void create_signal_data_file_float(double *signal, const char *filename);
 double* iir_osc(double *osc,double fDig,double amplitude,long samples);
 double* add_tones(double* sum, double *tone1, double *tone2, double *tone3);
-void create_signal_data_file(double *signal, const char *filename);
 
-
-
-
-/**
- * 	Main 
+/*
+* ====================================================================================================================
+* M A I N 			M A I N 			M A I N 			M A I N 			M A I N 			M A I N 			
+* ====================================================================================================================
 */
-
 int main(void){
 	
 	double *tone1, *tone2, *tone3;			// arrays for oscillator values
 	double *three_tones;
+	int *three_tones_qi;
 
 	tone1 = calloc(N,sizeof(double));		// memory reserved for the 1st tone values array
 	tone2 = calloc(N,sizeof(double));		// memory reserved for the 2nd tone values array
@@ -56,26 +59,51 @@ int main(void){
 	
 	// creates tone with digital ocillator
 	tone1 = iir_osc(tone1, (float)f7/N, A, N);
-	create_signal_data_file(tone1,"data_files/7_cycles.dat");
+	create_signal_data_file_float(tone1,"data_files/7_cycles.dat");
 	
 	// creates tone with digital ocillator
 	tone2 = iir_osc(tone2, (float)f15/N, A, N);
-	create_signal_data_file(tone2,"data_files/15_cycles.dat");
+	create_signal_data_file_float(tone2,"data_files/15_cycles.dat");
 	
 	// creates tone with digital ocillator
 	tone3 = iir_osc(tone3, (float)f25/N, A, N);
-	create_signal_data_file(tone3,"data_files/25_cycles.dat");
+	create_signal_data_file_float(tone3,"data_files/25_cycles.dat");
 
+	/*
 	// adds 3 tones into one signal
 	three_tones = add_tones(three_tones, tone1, tone2, tone3);
-	create_signal_data_file(three_tones,"data_files/3_tones.dat");
-
+	// converts signal to qi
+	three_tones_qi = sine_to_Qi(three_tones_qi, three_tones, Q8);
+	create_signal_data_file_qi(three_tones_qi,"data_files/3_tones_Q8.dat");
+	*/
+	
 	system("gnuplot -p 'graf.gp'");
 
 	return 0;
 }
 
 
+/*
+* ====================================================================================================================
+* F U N C T I O N 	D E F I N I T I O N S 			F U N C T I O N 	D E F I N I T I O N S			
+* ====================================================================================================================
+*/
+
+/**
+ *	@brief	Converts a signal of float values to fixed point values in the Qi given
+ *	
+ * 	@param 	Qi Given fixed point format
+ * 	@param 	num Floating point number to be converted
+ * 	
+ * 	@retval number converted to Qi fixed point
+ **/
+int* sine_to_Qi(int *signal_qi, double *signal_float, int qi){
+	int i;
+	for(i=0; i<N; i++)		
+			signal_qi[i] = float_to_Qi(qi, signal_float[i]);
+
+	return signal_qi;
+}
 
 /**
  *	@brief	Converts a float number to fixed point in the Qi given
@@ -84,7 +112,7 @@ int main(void){
  * 	@param 	num Floating point number to be converted
  * 	
  * 	@retval number converted to Qi fixed point
-*/
+ **/
 int float_to_Qi(int Qi, float num){
     int punto_fijo = 0;
     punto_fijo = (int)(num*pow(2,Qi));
@@ -101,7 +129,7 @@ int float_to_Qi(int Qi, float num){
  *	@param  samples Array size, number of samples
  * 	
  * 	@retval	generated signal
-*/
+ **/
 double * iir_osc(double *osc,double fDig,double amplitude,long samples){
 
     double b0, a1;
@@ -141,7 +169,7 @@ double * iir_osc(double *osc,double fDig,double amplitude,long samples){
  * 	@param 	*tone3 Array with floating point values of 3rd tone
  * 	
  * 	@retval	generated signal
-*/
+ **/
 double* add_tones(double* sum, double *tone1, double *tone2, double *tone3){
 	int i;
 
@@ -153,12 +181,12 @@ double* add_tones(double* sum, double *tone1, double *tone2, double *tone3){
 
 
 /**
-  *	@brief	Creates a .dat file with a signal points
-  * @param 	which elects either pure sine (0) or noisy_sine (1) or sine_Qi (2) to save into file
-  *	@param 	filename name + extension of the file to be created
-  * @retval None
-*/
-void create_signal_data_file(double *signal, const char *filename){
+ *	@brief	Creates a .dat file with a signal points in float format
+ * 	@param 	*signal input signal, of type double, to be saved
+ *	@param 	*filename name + extension of the file to be created
+ * 	@retval None
+ **/
+void create_signal_data_file_float(double *signal, const char *filename){
 	int i;
 	FILE *write;
 	write = fopen(filename,"w");
@@ -173,3 +201,24 @@ void create_signal_data_file(double *signal, const char *filename){
 
 }
 
+
+/**
+ *	@brief	Creates a .dat file with a signal points in integer (qi) format
+ * 	@param 	*signal input signal, of type integer, to be saved
+ *	@param 	*filename name + extension of the file to be created
+ * 	@retval None
+ **/
+void create_signal_data_file_qi(int *signal, const char *filename){
+	int i;
+	FILE *write;
+	write = fopen(filename,"w");
+    if (write == NULL) {
+        perror("Error opening file");
+    }else{
+		for(i=0; i<N; i++)
+			fprintf(write, "%d\n", signal[i]);
+
+		fclose(write);
+	}
+
+}
