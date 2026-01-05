@@ -139,6 +139,7 @@ float filter_sample(float *x, float *y, float *b_coef, float *a_coef, float n_sa
 		y[i] = y[i-1];
 	}
 
+	// updates current sample
 	x[0] = n_sample;
 	
 	// Difference equation of IIR filter
@@ -147,7 +148,7 @@ float filter_sample(float *x, float *y, float *b_coef, float *a_coef, float n_sa
 		y[0] += b_coef[i] * x[i] - a_coef[i] * y[i];
 	}
 	
-	// one filtered sample
+	// single filtered sample
 	return y[0];
 }
 

@@ -2,7 +2,7 @@ pkg load signal;
 
 M = 1000;
 w0 = 2*pi*15/M;   % Frecuencia digital del tono a cancelar
-r  = 0.995;        % Qué tan estrecho es el notch (0.95–0.99)
+r  = 0.98;        % Qué tan estrecho es el notch (0.95–0.99)
 
 b = [1 -2*cos(w0) 1]
 a = [1 -2*r*cos(w0) r^2]

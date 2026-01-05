@@ -38,7 +38,7 @@ unset xlabel
 unset ylabel
 unset title
 
-#------------- Graf 5 ----------------
+#------------- Graf 4 ----------------
 set title "3 tones"
 unset label
 set xlabel   "n"

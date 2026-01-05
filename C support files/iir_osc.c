@@ -69,13 +69,13 @@ int main(void){
 	tone3 = iir_osc(tone3, (float)f25/N, A, N);
 	create_signal_data_file_float(tone3,"data_files/25_cycles.dat");
 
-	/*
+	
 	// adds 3 tones into one signal
 	three_tones = add_tones(three_tones, tone1, tone2, tone3);
 	// converts signal to qi
-	three_tones_qi = sine_to_Qi(three_tones_qi, three_tones, Q8);
-	create_signal_data_file_qi(three_tones_qi,"data_files/3_tones_Q8.dat");
-	*/
+	three_tones_qi = sine_to_Qi(three_tones_qi, three_tones, Q12);
+	create_signal_data_file_qi(three_tones_qi,"data_files/3_tones_Q12.dat");
+	
 	
 	system("gnuplot -p 'graf.gp'");
 
