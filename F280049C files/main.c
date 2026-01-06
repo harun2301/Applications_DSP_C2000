@@ -7,7 +7,9 @@ extern int xn[], yn[];
 void main(void){
 
     int coef_b[3] = {4096,-8155,4096};
-    int coef_a[3] = {4096,-7992,3933};
+    // a0 = 4096, a0 = -7992, a0 = 3933,
+    // pero hay que pasarlos negados
+    int coef_a[3] = {-4096,7992,-3933};
     int i;
 
     for(i=0; i<N; i++){

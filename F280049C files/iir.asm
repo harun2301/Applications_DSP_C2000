@@ -1,7 +1,6 @@
 *
 * Ecuacion en diferencias del filtro
-* y(n) = b0x(n) + b1x(n-1) + b2x(n-2) +...
-* -a1y(n-1) - a2y(n-2)
+* y(n) = b0x(n) + b1x(n-1) + b2x(n-2) - a1y(n-1) - a2y(n-2)
 *
 *
 
@@ -33,7 +32,7 @@ endMemY .word 	0 		;
 * XAR5 = &coef_a[0]
 _filtroIIR:
 		SETC 	SXM 			; Modo extension de signo
-		;SETC 	OVM 			;
+		SETC 	OVM 			;
 		SPM 	0				; Corrimientos nulos en P
 
 		MOV 	@sumX,	#0 		;
@@ -43,15 +42,17 @@ _filtroIIR:
 		MOVL 	XAR0,	#yIIR 	; XAR0 apunta a salida
 		ZAPA
 
-* AQUI ESTA EL CAGADERO, LA PRIMERA VEZ QUE SE ENTRA A LA FUNCION SI JALA
-* A PARTIR DE LA SEGUNDA EL RESULTADO DE LA MAC ES MUY MUY MUY PEQUEÑO, NO
-* SE SI ES POR ERRORES DE ACUMULACION O QPD, PERO A PARTIR DE LA SEGUNDA
-* MUESTRA TODA LA RESPUESTA DEL FILTRO SE ATENUA. AUXILIO!!!!!!
+		MOV		T,		*XAR4++				; T = b0
+		MPY		P,		T,		*XAR7++		; P = (T)(*XAR7++) = b0*xn0
+		MOV		T,		*XAR4++				; T = b1
+		MPYA	P,		T,		*XAR7++		; Acc = ACC + P = 0 + b0*xn0 ; P = (T)(*XAR7++) = b1*xn1
+		MOV		T,		*XAR4++				; T = b2
+		MPYA	P,		T,		*XAR7++		; Acc = ACC + P = b0*xn0 + b1*xn1 ; P = (T)(*XAR7++) = b2*xn2
+		ADDL	ACC,	P					; ACC = = ACC + P = b0*xn0 + b1*xn1 + b2*xn2
+*		RPT 	#Nb-1
+*	||	MAC 	P,		*XAR4++,	*XAR7++ ; ACC=P, T=*XAR4,P=(*XAR4)(*XAR7)
 
-		RPT 	#Nb-1
-	||	MAC 	P,		*XAR4++,	*XAR7++ ; ACC=P, T=*XAR4,P=(*XAR4)(*XAR7)
-
-		ADDL 	ACC,	P<<PM				; Acumula último producto
+		;ADDL 	ACC,	P<<PM				; Acumula último producto
 		LSL 	ACC,	#4 					; mueve a la parte alta y trunca AH en formato Q12
 		MOVW 	DP,		#sumX 				; mueve el apuntador de pagina
 		MOV 	@sumX,	AH 					; guarda el resultado de la MAC
@@ -66,10 +67,16 @@ _filtroIIR:
 		MOVL 	XAR7,	#memY 				; apunta XAR7 al buffer de y
 		ZAPA
 
-		RPT 	#Na-1
-	||	MAC 	P,		*XAR5++,	*XAR7++ ; ACC=P, T=*XAR5,P=(*XAR5)(*XAR7)
+*		RPT 	#Na-1
+*	||	MAC 	P,		*XAR5++,	*XAR7++ ; ACC=P, T=*XAR5,P=(*XAR5)(*XAR7)
 
-		ADDL 	ACC,	P<<PM				; Acumula último producto
+		MOV		T,		*XAR5++				; T = a1
+		MPY		P,		T,		*XAR7++		; P = (T)(*XAR7++) = a1*yn1
+		MOV		T,		*XAR5++				; T = a2
+		MPYA	P,		T,		*XAR7++		; Acc = ACC + P = 0 + a1*yn1 ; P = (T)(*XAR7++) = a2*yn2
+		ADDL	ACC,	P					; ACC = = ACC + P = a1*yn1 + a2*yn2
+
+		;ADDL 	ACC,	P<<PM				; Acumula último producto
 		LSL 	ACC,	#4 					; mueve a la parte alta y trunca AH en formato Q12
 		ADD 	AH,		@sumX 				;
 
@@ -78,8 +85,9 @@ _filtroIIR:
 		RPT 	#Na-1
 	|| 	DMOV 	*--XAR7 					; Retardo en el tiempo
 
-		MOV 	*XAR7,	AH 					;
-		MOVL 	ACC,	*XAR0 				;
+		MOV 	*XAR7,	AH 					; guarda salida en el buffer y
+		MOVL 	ACC,	*XAR0 				; guardo en el acumulador mi salida
+		SFR		ACC,	#16					; Como mi variable en C es de tipo int (16 bits) solo se regresa la parte baja AL
 
 		LRETR
 
