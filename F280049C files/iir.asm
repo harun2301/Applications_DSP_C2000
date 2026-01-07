@@ -4,7 +4,7 @@
 *
 *
 
-		.global _filtroIIR
+		.global _filtroIIR		; nombre de funcion
 
 		.global _xn, _yn		; vectores
 
